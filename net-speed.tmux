@@ -15,17 +15,21 @@ get_tmux_option() {
     [[ -z "$option_value" ]] && echo $default_value || echo $option_value
 }
 
-download_interpolation="\#{download_speed}"
-download_speed_format=$(get_tmux_option @upload_speed_format "%7s")
+upload_speed_format=$(get_tmux_option   @upload_speed_format   "%7s")
+download_speed_format=$(get_tmux_option @download_speed_format "%7s")
 
-download_speed="#($CURRENT_DIR/scripts/net-speed rx_bytes)"
+upload_speed="#($CURRENT_DIR/scripts/net-speed   tx_bytes $(upload_speed_format))"
+download_speed="#($CURRENT_DIR/scripts/net-speed rx_bytes $(download_speed_format))"
+
+upload_interpolation="\#{upload_speed}"
+download_interpolation="\#{download_speed}"
+
 do_interpolation() {
     local input=$1
     local result=""
 
-    result=${input/$download_interpolation/$download_speed}
-    result=${result/$net_interpolation/$net_speed}
-    result=${result/$upload_interpolation/$upload_speed}
+    result=${input/$upload_interpolation/$upload_speed}
+    result=${result/$download_interpolation/$download_speed}
 
     echo $result
 }

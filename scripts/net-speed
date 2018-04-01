@@ -69,9 +69,9 @@ get_speed()
 # $2: format
 main()
 {
-    speed=$(get_speed $1)
-    format=$2
-    local format=${format:="%7s"}
+    local speed=$(get_speed $1)
+    local format=$2
+    format=${format:="%7s"}
     printf "$format" $speed
 }
 
