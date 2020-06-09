@@ -16,7 +16,7 @@ get_speed() {
     pre_var="@netspeed_$1"
     cur=$(get_bytes "$1")
     pre=$(get_tmux_option "$pre_var" "$cur")
-    diff=$(("$cur" - "$pre"))
+    diff=$((cur - pre))
     speed=$(bytestohuman $diff)
     # speed=$(numfmt --to=iec --padding=7 $diff)
     echo "${speed}/s"
