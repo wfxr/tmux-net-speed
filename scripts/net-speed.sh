@@ -5,9 +5,21 @@ source "$SDIR/helpers.sh"
 
 # $1: rx_bytes/tx_bytes
 get_bytes() {
-    for file in /sys/class/net/*; do
-        [[ $file =~ .*/(lo|docker.*) ]] || cat "$file/statistics/$1"
-    done | sum_column 2>/dev/null
+    case $(get_os) in
+        osx)
+            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev '^(lo|docker).*' |
+                awk '{rx += $7;tx += $10;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
+                grep "$1" | awk '{print $2}'
+            ;;
+        linux)
+            for file in /sys/class/net/*; do
+                [[ $file =~ .*/(lo|docker.*) ]] || cat "$file/statistics/$1"
+            done | sum_column 2>/dev/null
+            ;;
+        *)
+            echo 0
+            ;;
+    esac
 }
 
 # $1: rx_bytes/tx_bytes
