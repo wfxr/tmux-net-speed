@@ -1,25 +1,13 @@
 #!/usr/bin/env bash
 
-CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-set_tmux_option() {
-    local option="$1"
-    local value="$2"
-    tmux set-option -gq "$option" "$value"
-}
-get_tmux_option() {
-    local option=$1
-    local default_value=$2
-    local option_value="$(tmux show-option -gqv "$option")"
-
-    [[ -z "$option_value" ]] && echo $default_value || echo $option_value
-}
+SDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SDIR/scripts/helpers.sh"
 
 upload_speed_format=$(get_tmux_option   @upload_speed_format   "%7s")
 download_speed_format=$(get_tmux_option @download_speed_format "%7s")
 
-upload_speed="#($CURRENT_DIR/scripts/net-speed   tx_bytes $(upload_speed_format))"
-download_speed="#($CURRENT_DIR/scripts/net-speed rx_bytes $(download_speed_format))"
+upload_speed="#($SDIR/scripts/net-speed.sh   tx_bytes $(upload_speed_format))"
+download_speed="#($SDIR/scripts/net-speed.sh rx_bytes $(download_speed_format))"
 
 upload_interpolation="\#{upload_speed}"
 download_interpolation="\#{download_speed}"
@@ -31,7 +19,7 @@ do_interpolation() {
     result=${input/$upload_interpolation/$upload_speed}
     result=${result/$download_interpolation/$download_speed}
 
-    echo $result
+    echo "$result"
 }
 
 update_tmux_option() {
