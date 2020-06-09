@@ -17,8 +17,8 @@ get_speed() {
     cur=$(get_bytes "$1")
     pre=$(get_tmux_option "$pre_var" "$cur")
     diff=$(("$cur" - "$pre"))
-    speed=$(numfmt --to=iec --padding=7 $diff)
-    [[ $diff -lt 1024 ]] && speed+="B"
+    speed=$(bytestohuman $diff)
+    # speed=$(numfmt --to=iec --padding=7 $diff)
     echo "${speed}/s"
     set_tmux_option "$pre_var" "$cur"
 }
@@ -26,7 +26,7 @@ get_speed() {
 # $1: tx_bytes/tx_bytes
 # $2: format
 main() {
-    printf "${2:-%7s}" "$(get_speed $1)"
+    printf "${2:-%8s}" "$(get_speed "$1")"
 }
 
 main "$@"
