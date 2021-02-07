@@ -3,11 +3,15 @@
 SDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$SDIR/scripts/helpers.sh"
 
-upload_speed_format=$(get_tmux_option   @upload_speed_format   "%7s")
-download_speed_format=$(get_tmux_option @download_speed_format "%7s")
+upload_speed_format()   {
+    get_tmux_option @upload_speed_format   "%%7s"
+}
+download_speed_format() {
+    get_tmux_option @download_speed_format "%%7s"
+}
 
-upload_speed="#($SDIR/scripts/net-speed.sh   tx_bytes $(upload_speed_format))"
-download_speed="#($SDIR/scripts/net-speed.sh rx_bytes $(download_speed_format))"
+upload_speed="#($SDIR/scripts/net-speed.sh   tx_bytes '$(upload_speed_format)')"
+download_speed="#($SDIR/scripts/net-speed.sh rx_bytes '$(download_speed_format)')"
 
 upload_interpolation="\#{upload_speed}"
 download_interpolation="\#{download_speed}"
