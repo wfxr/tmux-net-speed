@@ -17,6 +17,9 @@ get_os() {
         linux*)   echo "linux" ;;
         darwin*)  echo "osx" ;;
         solaris*) echo "solaris" ;;
+        freebsd*) echo "freebsd" ;;
+        netbsd*)  echo "netbsd" ;;
+        openbsd*) echo "openbsd" ;;
         bsd*)     echo "bsd" ;;
         msys*)    echo "windows" ;;
         *)        echo "unknown" ;;
