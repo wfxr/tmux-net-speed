@@ -16,6 +16,16 @@ get_bytes() {
                 [[ $file =~ .*/(lo|docker.*) ]] || cat "$file/statistics/$1"
             done | sum_column 2>/dev/null
             ;;
+        freebsd)
+            netstat -ibnW | sort -u -k1,1 | grep ':' | grep -Ev '^lo.*' |
+                awk '{rx += $8;tx += $11;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
+                grep "$1" | awk '{print $2}'
+            ;;
+        netbsd|openbsd)
+            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev '^lo.*' |
+                awk '{rx += $5;tx += $6;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
+                grep "$1" | awk '{print $2}'
+            ;;
         *)
             echo 0
             ;;
