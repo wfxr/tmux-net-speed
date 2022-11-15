@@ -27,7 +27,7 @@ get_os() {
 }
 
 sum_column() {
-    awk '{sum += $1;}END{print sum;}'
+    awk '{sum += $1;}END{printf("%.0f",sum);}'
 }
 
 # ref: https://unix.stackexchange.com/a/98790 @John
