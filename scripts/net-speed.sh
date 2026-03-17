@@ -7,14 +7,11 @@ IGNORED_IFACES='^(lo|docker|veth|br-|virbr|tun|vnet)'
 
 # $1: rx_bytes/tx_bytes
 get_bytes() {
-    case $(get_os) in
-        osx)
-            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev "$IGNORED_IFACES" |
-                awk '{rx += $7;tx += $10;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
-                grep "$1" | awk '{print $2}'
-            ;;
+    local field=$1
+    local os=$(get_os)
+    case $os in
         linux)
-            awk -v field="$1" -v ignore="$IGNORED_IFACES" '
+            awk -v field="$field" -v ignore="$IGNORED_IFACES" '
             NR > 2 {
                 gsub(/:/, "", $1)
                 if ($1 ~ ignore) next
@@ -24,15 +21,22 @@ get_bytes() {
             END { printf "%.0f", sum }
             ' /proc/net/dev
             ;;
-        freebsd)
-            netstat -ibnW | sort -u -k1,1 | grep ':' | grep -Ev "$IGNORED_IFACES" |
-                awk '{rx += $8;tx += $11;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
-                grep "$1" | awk '{print $2}'
-            ;;
-        netbsd|openbsd)
-            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev "$IGNORED_IFACES" |
-                awk '{rx += $5;tx += $6;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
-                grep "$1" | awk '{print $2}'
+        osx|freebsd|netbsd|openbsd)
+            local netstat_flags rx_col tx_col
+            case $os in
+                osx)            netstat_flags="-ibn";  rx_col=7;  tx_col=10 ;;
+                freebsd)        netstat_flags="-ibnW"; rx_col=8;  tx_col=11 ;;
+                netbsd|openbsd) netstat_flags="-ibn";  rx_col=5;  tx_col=6  ;;
+            esac
+            netstat $netstat_flags |
+                awk -v field="$field" -v ignore="$IGNORED_IFACES" \
+                    -v rx_col="$rx_col" -v tx_col="$tx_col" '
+                /:/ && !seen[$1]++ {
+                    if ($1 ~ ignore) next
+                    rx += $rx_col; tx += $tx_col
+                }
+                END { printf "%.0f", (field == "rx_bytes") ? rx : tx }
+                '
             ;;
         *)
             echo 0
