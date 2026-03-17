@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 SDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-source "$SDIR/scripts/helpers.sh"
+source "$SDIR/scripts/lib.sh"
 
 upload_speed_format()   {
     get_tmux_option @upload_speed_format   "%%7s"

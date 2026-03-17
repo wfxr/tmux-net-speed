@@ -1,48 +1,7 @@
 #!/usr/bin/env bash
 
 SDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-source "$SDIR/helpers.sh"
-
-IGNORED_IFACES='^(lo|docker|veth|br-|virbr|tun|vnet)'
-
-# $1: rx_bytes/tx_bytes
-get_bytes() {
-    local field=$1
-    local os=$(get_os)
-    case $os in
-        linux)
-            awk -v field="$field" -v ignore="$IGNORED_IFACES" '
-            NR > 2 {
-                gsub(/:/, "", $1)
-                if ($1 ~ ignore) next
-                if (field == "rx_bytes") sum += $2
-                else if (field == "tx_bytes") sum += $10
-            }
-            END { printf "%.0f", sum }
-            ' /proc/net/dev
-            ;;
-        osx|freebsd|netbsd|openbsd)
-            local netstat_flags rx_col tx_col
-            case $os in
-                osx)            netstat_flags="-ibn";  rx_col=7;  tx_col=10 ;;
-                freebsd)        netstat_flags="-ibnW"; rx_col=8;  tx_col=11 ;;
-                netbsd|openbsd) netstat_flags="-ibn";  rx_col=5;  tx_col=6  ;;
-            esac
-            netstat $netstat_flags |
-                awk -v field="$field" -v ignore="$IGNORED_IFACES" \
-                    -v rx_col="$rx_col" -v tx_col="$tx_col" '
-                /:/ && !seen[$1]++ {
-                    if ($1 ~ ignore) next
-                    rx += $rx_col; tx += $tx_col
-                }
-                END { printf "%.0f", (field == "rx_bytes") ? rx : tx }
-                '
-            ;;
-        *)
-            echo 0
-            ;;
-    esac
-}
+source "$SDIR/lib.sh"
 
 update_speeds() {
     local last_update now elapsed
