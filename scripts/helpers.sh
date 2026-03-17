@@ -26,23 +26,23 @@ get_os() {
     esac
 }
 
-sum_column() {
-    awk '{sum += $1;}END{printf("%.0f",sum);}'
-}
-
-# ref: https://unix.stackexchange.com/a/98790 @John
 bytestohuman() {
-    local L_BYTES="${1:-0}"
-    local L_BASE="${2:-1024}"
-    (awk -v bytes="${L_BYTES}" -v base="${L_BASE}" 'function human(x, base) {
-         if(base!=1024)base=1000
+    local bytes=${1:-0}
+    local units="BKMGTEPYZ"
+    local i=0 divisor=1
 
-         s="BKMGTEPYZ"
-         while (x>=base && length(s)>1)
-               {x/=base; s=substr(s,2)}
-         s=substr(s,1,1)
-         xf=((s=="B")?"%4d": (x > 99 ? "%4d" : "%4.1f"))
-         return sprintf( (xf "%s\n"), x, s)
-      }
-      BEGIN{print human(bytes, base)}')
+    while (( bytes / divisor >= 1024 && i < ${#units} - 1 )); do
+        divisor=$((divisor * 1024))
+        (( i++ ))
+    done
+
+    local unit=${units:$i:1}
+    local value=$((bytes / divisor))
+
+    if (( i == 0 || value > 99 )); then
+        printf "%4d%s" "$value" "$unit"
+    else
+        local frac=$(( (bytes % divisor) * 10 / divisor ))
+        printf "%4s%s" "${value}.${frac}" "$unit"
+    fi
 }
