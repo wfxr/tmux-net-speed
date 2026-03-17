@@ -7,7 +7,8 @@ failures=0
 
 assert_valid_bytes() {
     local field=$1
-    local value=$(get_bytes "$field")
+    local value
+    value=$(get_bytes "$field")
     # Must be a non-negative integer
     if ! [[ "$value" =~ ^[0-9]+$ ]]; then
         echo "FAIL: get_bytes($field) = [$value], expected non-negative integer"

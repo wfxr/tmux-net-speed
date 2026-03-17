@@ -7,14 +7,14 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  pre-commit:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
-      - name: Run tests
-        run: |
-          bash scripts/tests/test_bytestohuman.sh
-          bash scripts/tests/test_get_bytes.sh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: pre-commit/action@v3.0.1
