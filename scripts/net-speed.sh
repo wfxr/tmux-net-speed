@@ -74,4 +74,6 @@ main() {
     printf "${2:-%8s}" "$(get_tmux_option "@netspeed_${field}_display" "   0B/s")"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
