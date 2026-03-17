@@ -34,16 +34,22 @@ get_bytes() {
 
 # $1: rx_bytes/tx_bytes
 get_speed() {
-    local pre cur diff speed pre_var
-    pre_var="@netspeed_$1"
-    cur=$(get_bytes "$1")
+    local field=$1
+    local pre cur diff speed pre_var time_var pre_time cur_time elapsed
+    pre_var="@netspeed_$field"
+    time_var="@netspeed_${field}_time"
+    cur=$(get_bytes "$field")
+    cur_time=$(date +%s)
     pre=$(get_tmux_option "$pre_var" "$cur")
-    diff=$((cur - pre))
+    pre_time=$(get_tmux_option "$time_var" "$cur_time")
+    elapsed=$((cur_time - pre_time))
+    (( elapsed < 1 )) && elapsed=1
+    diff=$(( (cur - pre) / elapsed ))
     (( diff < 0 )) && diff=0
     speed=$(bytestohuman $diff)
-    # speed=$(numfmt --to=iec --padding=7 $diff)
     echo "${speed}/s"
     set_tmux_option "$pre_var" "$cur"
+    set_tmux_option "$time_var" "$cur_time"
 }
 
 # $1: tx_bytes/tx_bytes
