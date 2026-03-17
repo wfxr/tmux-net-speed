@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2218
 
 set_tmux_option() {
     local option="$1"
@@ -31,17 +32,35 @@ get_os() {
 
 IGNORED_IFACES='^(lo|docker|veth|br-|virbr|tun|vnet)'
 
+# Shared awk snippet: precompute whitelist in BEGIN, skip_iface() returns 1 if
+# the interface should be excluded.
+AWK_IFACE_FILTER='
+BEGIN {
+    if (ifaces != "") {
+        n = split(ifaces, _arr)
+        for (i = 1; i <= n; i++) wanted[_arr[i]] = 1
+    }
+}
+function skip_iface(name) {
+    if (ifaces != "") return !(name in wanted)
+    return (name ~ ignore)
+}
+'
+
 # $1: rx_bytes/tx_bytes
 get_bytes() {
     local field=$1
     local os
     os=$(get_os)
+    local interfaces
+    interfaces=$(get_tmux_option "@net_speed_interfaces" "")
     case $os in
         linux)
-            awk -v field="$field" -v ignore="$IGNORED_IFACES" '
+            awk -v field="$field" -v ignore="$IGNORED_IFACES" -v ifaces="$interfaces" \
+                "$AWK_IFACE_FILTER"'
             NR > 2 {
                 gsub(/:/, "", $1)
-                if ($1 ~ ignore) next
+                if (skip_iface($1)) next
                 if (field == "rx_bytes") sum += $2
                 else if (field == "tx_bytes") sum += $10
             }
@@ -57,9 +76,10 @@ get_bytes() {
             esac
             netstat $netstat_flags |
                 awk -v field="$field" -v ignore="$IGNORED_IFACES" \
-                    -v rx_col="$rx_col" -v tx_col="$tx_col" '
+                    -v rx_col="$rx_col" -v tx_col="$tx_col" -v ifaces="$interfaces" \
+                    "$AWK_IFACE_FILTER"'
                 /:/ && !seen[$1]++ {
-                    if ($1 ~ ignore) next
+                    if (skip_iface($1)) next
                     rx += $rx_col; tx += $tx_col
                 }
                 END { printf "%.0f", (field == "rx_bytes") ? rx : tx }
