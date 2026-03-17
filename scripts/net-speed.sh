@@ -7,7 +7,7 @@ source "$SDIR/helpers.sh"
 get_bytes() {
     case $(get_os) in
         osx)
-            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev '^(lo|docker).*' |
+            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev '^(lo|docker|veth|br-|virbr|tun|vnet)' |
                 awk '{rx += $7;tx += $10;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
                 grep "$1" | awk '{print $2}'
             ;;
@@ -23,12 +23,12 @@ get_bytes() {
             ' /proc/net/dev
             ;;
         freebsd)
-            netstat -ibnW | sort -u -k1,1 | grep ':' | grep -Ev '^lo.*' |
+            netstat -ibnW | sort -u -k1,1 | grep ':' | grep -Ev '^(lo|docker|veth|br-|virbr|tun|vnet)' |
                 awk '{rx += $8;tx += $11;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
                 grep "$1" | awk '{print $2}'
             ;;
         netbsd|openbsd)
-            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev '^lo.*' |
+            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev '^(lo|docker|veth|br-|virbr|tun|vnet)' |
                 awk '{rx += $5;tx += $6;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
                 grep "$1" | awk '{print $2}'
             ;;
