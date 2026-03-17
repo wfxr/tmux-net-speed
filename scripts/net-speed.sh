@@ -3,19 +3,21 @@
 SDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$SDIR/helpers.sh"
 
+IGNORED_IFACES='^(lo|docker|veth|br-|virbr|tun|vnet)'
+
 # $1: rx_bytes/tx_bytes
 get_bytes() {
     case $(get_os) in
         osx)
-            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev '^(lo|docker|veth|br-|virbr|tun|vnet)' |
+            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev "$IGNORED_IFACES" |
                 awk '{rx += $7;tx += $10;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
                 grep "$1" | awk '{print $2}'
             ;;
         linux)
-            awk -v field="$1" '
+            awk -v field="$1" -v ignore="$IGNORED_IFACES" '
             NR > 2 {
                 gsub(/:/, "", $1)
-                if ($1 ~ /^(lo|docker|veth|br-|virbr|tun|vnet)/) next
+                if ($1 ~ ignore) next
                 if (field == "rx_bytes") sum += $2
                 else if (field == "tx_bytes") sum += $10
             }
@@ -23,12 +25,12 @@ get_bytes() {
             ' /proc/net/dev
             ;;
         freebsd)
-            netstat -ibnW | sort -u -k1,1 | grep ':' | grep -Ev '^(lo|docker|veth|br-|virbr|tun|vnet)' |
+            netstat -ibnW | sort -u -k1,1 | grep ':' | grep -Ev "$IGNORED_IFACES" |
                 awk '{rx += $8;tx += $11;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
                 grep "$1" | awk '{print $2}'
             ;;
         netbsd|openbsd)
-            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev '^(lo|docker|veth|br-|virbr|tun|vnet)' |
+            netstat -ibn | sort -u -k1,1 | grep ':' | grep -Ev "$IGNORED_IFACES" |
                 awk '{rx += $5;tx += $6;}END{print "rx_bytes "rx,"\ntx_bytes "tx}' |
                 grep "$1" | awk '{print $2}'
             ;;
