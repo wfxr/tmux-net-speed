@@ -73,7 +73,7 @@ get_bytes() {
 
 bytestohuman() {
     local bytes=${1:-0}
-    local units="BKMGTEPYZ"
+    local units="BKMGTPEZY"
     local i=0 divisor=1
 
     while (( bytes / divisor >= 1024 && i < ${#units} - 1 )); do
