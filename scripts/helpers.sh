@@ -9,7 +9,7 @@ get_tmux_option() {
     local default_value=$2
     local option_value="$(tmux show-option -gqv "$option")"
 
-    [[ -z "$option_value" ]] && echo $default_value || echo $option_value
+    [[ -z "$option_value" ]] && echo "$default_value" || echo "$option_value"
 }
 
 get_os() {
