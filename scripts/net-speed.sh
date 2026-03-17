@@ -12,9 +12,15 @@ get_bytes() {
                 grep "$1" | awk '{print $2}'
             ;;
         linux)
-            for file in /sys/class/net/*; do
-                [[ $file =~ .*/(lo|docker.*) ]] || cat "$file/statistics/$1"
-            done | sum_column 2>/dev/null
+            awk -v field="$1" '
+            NR > 2 {
+                gsub(/:/, "", $1)
+                if ($1 ~ /^(lo|docker|veth|br-|virbr|tun|vnet)/) next
+                if (field == "rx_bytes") sum += $2
+                else if (field == "tx_bytes") sum += $10
+            }
+            END { printf "%.0f", sum }
+            ' /proc/net/dev
             ;;
         freebsd)
             netstat -ibnW | sort -u -k1,1 | grep ':' | grep -Ev '^lo.*' |
