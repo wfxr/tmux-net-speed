@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
+# https://github.com/koalaman/shellcheck/issues/3070
+# shellcheck disable=SC2218
+set -euo pipefail
+IFS=$'\n\t'
 
-SDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-source "$SDIR/lib.sh"
+SDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd) && cd "$SDIR"
+source ./lib.sh
 
 update_speeds() {
     local last_update now elapsed
@@ -34,6 +38,7 @@ update_speeds() {
 main() {
     local field=$1
     update_speeds
+    # shellcheck disable=SC2059
     printf "${2:-%8s}" "$(get_tmux_option "@netspeed_${field}_display" "   0B/s")"
 }
 

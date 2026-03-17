@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: mixed-line-ending
+
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck -x --source-path=SCRIPTDIR
+        language: system
+        types: [shell]
+
+      - id: tests
+        name: run tests
+        entry: bash -c 'bash scripts/tests/test_bytestohuman.sh && bash scripts/tests/test_get_bytes.sh'
+        language: system
+        pass_filenames: false
+        files: '\.sh$'

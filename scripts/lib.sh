@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 set_tmux_option() {
     local option="$1"
     local value="$2"
@@ -7,7 +9,8 @@ set_tmux_option() {
 get_tmux_option() {
     local option=$1
     local default_value=$2
-    local option_value="$(tmux show-option -gqv "$option")"
+    local option_value
+    option_value="$(tmux show-option -gqv "$option")"
 
     [[ -z "$option_value" ]] && echo "$default_value" || echo "$option_value"
 }
@@ -31,7 +34,8 @@ IGNORED_IFACES='^(lo|docker|veth|br-|virbr|tun|vnet)'
 # $1: rx_bytes/tx_bytes
 get_bytes() {
     local field=$1
-    local os=$(get_os)
+    local os
+    os=$(get_os)
     case $os in
         linux)
             awk -v field="$field" -v ignore="$IGNORED_IFACES" '

@@ -7,7 +7,8 @@ failures=0
 
 assert_eq() {
     local input=$1 expected=$2
-    local actual=$(bytestohuman "$input")
+    local actual
+    actual=$(bytestohuman "$input")
     if [[ "$actual" != "$expected" ]]; then
         echo "FAIL: bytestohuman($input) = [$actual], expected [$expected]"
         (( failures++ ))
